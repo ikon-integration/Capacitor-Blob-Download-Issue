@@ -7,8 +7,5 @@
     "SplashScreen": {
       "launchShowDuration": 0
     }
-  },
-  "server": {
-    "url": "https://jimmywarting.github.io/StreamSaver.js/examples/saving-multiple-files.html"
   }
 }
