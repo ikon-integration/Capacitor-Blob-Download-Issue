@@ -21,17 +21,6 @@
   const isSecureContext = global.isSecureContext
   // TODO: Must come up with a real detection test (#69)
   let useBlobFallback = /constructor/i.test(global.HTMLElement) || !!global.safari || !!global.WebKitPoint
-    try {
-      // We can't look for service worker since it may still work on http
-      new Response(new ReadableStream())
-      if (isSecureContext && !('serviceWorker' in navigator)) {
-        useBlobFallback = true
-      }
-    } catch (err) {
-      useBlobFallback = true
-    }
-
-  useBlobFallback = true
   console.log('Use blob fallback', useBlobFallback);
 
 
