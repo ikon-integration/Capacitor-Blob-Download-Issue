@@ -1,61 +1,74 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Saving multiple files as zip</title>
-  </head>
-  <body>
-    <button id="$start1">Start (pure blob)</button>
-    <button id="$start2">Start (remote blob)</button>
-    <button id="$start3">Start (webworker initated download)</button>
 
-    <script src="https://cdn.jsdelivr.net/npm/web-streams-polyfill@2.0.2/dist/ponyfill.min.js"></script>
+<head>
+  <meta charset="utf-8">
+  <title>Saving multiple files as zip</title>
+</head>
 
-    <!--
-    includes blob.stream() polyfill
-    while Also making File constructor work in some browser that don't support it
-    -->
-    <script src="https://cdn.jsdelivr.net/gh/eligrey/Blob.js/Blob.js"></script>
-    <script src="StreamSaver.js"></script>
-    <script src="zip-stream.js"></script>
-    <script>
-      streamSaver.mitm = '/mitm.html';
-      start = () => {
-          const url = 'https://d8d913s460fub.cloudfront.net/videoserver/cat-test-video-320x240.mp4'
-          const fileStream = streamSaver.createWriteStream('cat.mp4')
+<body>
+  <button id="$start1">Start (pure blob - known type)</button><br />
+  <button id="$start4">Start (pure blob - unknown type)</button><br />
+  <button id="$start2">Start (remote blob)</button><br />
+  <button id="$start3">Start (webworker initated download)</button>
 
-          fetch(url).then(res => {
-            const readableStream = res.body
+  <script src="https://cdn.jsdelivr.net/npm/web-streams-polyfill@2.0.2/dist/ponyfill.min.js"></script>
 
-            // more optimized
-            if (window.WritableStream && readableStream.pipeTo) {
-              return readableStream.pipeTo(fileStream)
-                .then(() => console.log('done writing'))
-            }
+  <!--
+includes blob.stream() polyfill
+while Also making File constructor work in some browser that don't support it
+-->
+  <script src="https://cdn.jsdelivr.net/gh/eligrey/Blob.js/Blob.js"></script>
+  <script src="StreamSaver.js"></script>
+  <script src="zip-stream.js"></script>
+  <script>
+    streamSaver.mitm = '/mitm.html';
+    start = () => {
+      const url = 'https://d8d913s460fub.cloudfront.net/videoserver/cat-test-video-320x240.mp4'
+      const fileStream = streamSaver.createWriteStream('cat.mp4')
 
-            window.writer = fileStream.getWriter()
+      fetch(url).then(res => {
+        const readableStream = res.body
 
-            const reader = res.body.getReader()
-            const pump = () => reader.read()
-              .then(res => res.done
-                ? writer.close()
-                : writer.write(res.value).then(pump))
-
-            pump()
-          })
+        // more optimized
+        if (window.WritableStream && readableStream.pipeTo) {
+          return readableStream.pipeTo(fileStream)
+            .then(() => console.log('done writing'))
         }
 
-      $start1.onclick = () => {
-        
-      }
-      $start2.onclick = () => {
-        window.useBlobFallback = true;
-        start();
-      }
-      $start3.onclick = () => {
-        window.useBlobFallback = false;
-        start();
-      }
-    </script>
-  </body>
+        window.writer = fileStream.getWriter()
+
+        const reader = res.body.getReader()
+        const pump = () => reader.read()
+          .then(res => res.done
+            ? writer.close()
+            : writer.write(res.value).then(pump))
+
+        pump()
+      })
+    }
+
+    $start1.onclick = () => {
+      let base64 = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+      let buffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+      let blob = new Blob([buffer], { type: "image/gif" });
+      let url = URL.createObjectURL(blob);
+      window.location.href = url;
+    }
+    $start4.onclick = () => {
+      const blob = new Blob(["some text here"], { type: "plain/text" });
+      const url = URL.createObjectURL(blob);
+      window.location.href = url;
+    }
+    $start2.onclick = () => {
+      window.useBlobFallback = true;
+      start();
+    }
+    $start3.onclick = () => {
+      window.useBlobFallback = false;
+      start();
+    }
+  </script>
+</body>
+
 </html>
